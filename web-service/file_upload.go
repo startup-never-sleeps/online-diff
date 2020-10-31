@@ -3,18 +3,21 @@ package main
 import (
 	"fmt"
 	"io"
-	//"strconv"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
+	// TODO Make sure "NLP" is seen here.
+	// See how guuid is imported
 	"project/python_wrappers"
+	guuid "github.com/google/uuid"
 )
 
 var (
 	WarningLogger *log.Logger
 	ErrorLogger   *log.Logger
+	UUIDResult map[guuid.UUID][][]float32
 )
 
 func init() {
@@ -23,22 +26,67 @@ func init() {
 		log.Fatal(err)
 	}
 
+	if _, err := os.Stat("uploaded"); os.IsNotExist(err) {
+		err := os.Mkdir("uploaded", 0777)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	ErrorLogger = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	UUIDResult = make(map[guuid.UUID][][]float32)
 }
 
-func uploadFile(w http.ResponseWriter, req *http.Request) {
+func prepareViewForUUID(id guuid.UUID) {
+	res, err := nlp.ComputePairwiseSimilarity("uploaded", "--external")
+	if err != nil {
+		ErrorLogger.Println(err)
+	}
+	UUIDResult[id] = res
+}
+
+// Handlers
+
+func viewSimilarity(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("viewSimilarity End Point hit")
+	// Retrieve view UUID.
+	// The url is expected to be of this form:
+	// `hostname/view?id=UUID_VALUE`
+	var id_ns, ok = req.URL.Query()["id"]
+	if !ok || len(id_ns) == 0 {
+		ErrorLogger.Println("Invalid url format")
+		return
+	}
+	id_str := id_ns[0]
+	id, err := guuid.Parse(id_str)
+	if err != nil {
+		ErrorLogger.Println("Invalid UUID value")
+		return
+	}
+	var result [][]float32
+	// If we are not ready, deny of service and halt
+	if result, ok = UUIDResult[id]; ok == false {
+		fmt.Fprintf(w, "Result for %s is not found.", id);
+		return
+	}
+	// Serve the result.
+	fmt.Fprintf(w, "%s", result)
+}
+
+func uploadFiles(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 	var err error
 
-	if req.Method == "GET" {
+	fmt.Println(req.Method)
+	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		WarningLogger.Println("Get request not supported")
+		WarningLogger.Println("%s request not supported", req.Method)
 		return
 	}
 
-	const _32K = (1 << 10) * 32
-	if err = req.ParseMultipartForm(_32K); nil != err {
+	const _5M = (1 << 20) * 5
+	if err = req.ParseMultipartForm(_5M); nil != err {
 		http.Error(w, "507 - Maximum upload size limit exceeded!", http.StatusInsufficientStorage)
 		return
 	}
@@ -59,35 +107,27 @@ func uploadFile(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// 32K buffer copy
+		// 5M buffer copy
 		if _, err = io.Copy(outfile, infile); nil != err {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			ErrorLogger.Println(err)
 			return
 		}
-
-		fmt.Printf("Uploaded File: %+v\n", fh.Filename)
-		fmt.Printf("File Size: %+v\n", fh.Size)
-		fmt.Printf("MIME Header: %+v\n", fh.Header)
-		fmt.Fprintf(w, "Successfully Uploaded File\n")
 	}
 
-	if res, err := nlp.ComputePairwiseSimilarity("uploaded", "--external"); err != nil {
-		ErrorLogger.Println(err)
-	} else {
-		fmt.Fprintf(w, "%v\n", res)
-	}
+	id := guuid.New()
+	go prepareViewForUUID(id)
+	// Report a link to the personal room
+	fmt.Fprintf(w, "%s", id.String())
 }
 
 func setupRoutes() {
-	http.HandleFunc("/upload", uploadFile)
+	http.HandleFunc("/upload", uploadFiles)
+	http.HandleFunc("/view", viewSimilarity)
 	http.ListenAndServe(":8080", nil)
 }
 
 func main() {
 	fmt.Println("Hello World")
 	setupRoutes()
-
-	//res, err := nlp.ComputePairwiseSimilarity("uploaded", "--external")
-	//fmt.Println(res, err)
 }
