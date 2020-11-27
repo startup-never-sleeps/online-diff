@@ -1,19 +1,19 @@
-package handlers
+package api
 
 import (
 	"fmt"
 	guuid "github.com/google/uuid"
 	"net/http"
 	"strings"
-	containers "web-service/api/storage_container"
-	nlp "web-service/api/text_similarity"
+	containers "web-service/src/storage_container"
+	nlp "web-service/src/text_similarity"
 )
 
 var (
 	db containers.ClientContainer
 )
 
-func InitializeViewRoomHandler(container containers.ClientContainer) {
+func InitializeViewRoomController(container containers.ClientContainer) {
 	db = container
 }
 

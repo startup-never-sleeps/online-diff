@@ -1,8 +1,8 @@
-package handlers
+package api
 
 import (
 	"log"
-	utils "web-service/api/utils"
+	utils "web-service/src/utils"
 )
 
 var (
@@ -11,7 +11,7 @@ var (
 	DebugLogger   *log.Logger
 )
 
-func InitializeHandlersCommon() {
+func InitializeControllersCommon() {
 	WarningLogger = utils.GetLogger("WARNING: ")
 	ErrorLogger = utils.GetLogger("ERROR: ")
 	DebugLogger = utils.GetLogger("DEBUG: ")

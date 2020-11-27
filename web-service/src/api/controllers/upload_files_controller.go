@@ -1,4 +1,4 @@
-package handlers
+package api
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ var (
 	UploadFilesDir string
 )
 
-func InitializeUploadFilesHandler(upload_files_dir string) {
+func InitializeUploadFilesController(upload_files_dir string) {
 
 	if _, err := os.Stat(upload_files_dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(upload_files_dir, 0777); err != nil {
@@ -35,7 +35,7 @@ func UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var err error
-	const _5M = (1 << 20) * 5
+	const _5M = (1 << 20) * 10
 	if err = req.ParseMultipartForm(_5M); nil != err {
 		http.Error(w, "507 - Maximum upload size limit exceeded!", http.StatusInsufficientStorage)
 		return
