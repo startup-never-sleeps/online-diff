@@ -2,11 +2,17 @@ package api
 
 import (
 	"fmt"
-	guuid "github.com/google/uuid"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path"
 	"strings"
+	s3support "web-service/s3support"
+	config "web-service/src/config"
 	containers "web-service/src/storage_container"
 	nlp "web-service/src/text_similarity"
+
+	guuid "github.com/google/uuid"
 )
 
 var (
@@ -19,14 +25,24 @@ func InitializeViewRoomController(container containers.ClientContainer) {
 
 func prepareViewForUUID(id guuid.UUID) {
 	db.SavePendingClient(id, "")
-
-	res, err := nlp.GetPairwiseSimilarity(UploadFilesDir)
+	res, err := nlp.GetPairwiseSimilarity(config.UploadFilesDir)
 	if err != nil {
 		db.SaveErrorClient(id, err.Error())
 		ErrorLogger.Println(err)
 	} else {
 		db.SaveSuccessClient(id, res)
+		files, err := ioutil.ReadDir(path.Join(config.UploadFilesDir, id.String()))
+		if err != nil {
+			ErrorLogger.Println(err)
+		}
+		for _, file := range files {
+			filePath := path.Join(config.UploadFilesDir, id.String(), file.Name())
+			file_, _ := os.Open(filePath)
+			err = s3support.StoreFileByUUID(id, file_, file.Name())
+			defer file_.Close()
+		}
 	}
+	os.RemoveAll(path.Join(config.UploadFilesDir, id.String()))
 }
 
 func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {

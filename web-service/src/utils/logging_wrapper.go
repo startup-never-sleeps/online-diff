@@ -33,3 +33,8 @@ func InitializeLogger(path string) {
 func GetLogger(prefix string) *log.Logger {
 	return log.New(loggingFile, prefix, log.Ldate|log.Ltime|log.Lshortfile)
 }
+
+// Get a logger with custom storage path
+func GetLoggerPkgScoped(prefix string, storagePath *os.File) *log.Logger {
+	return log.New(storagePath, prefix, log.Ldate|log.Ltime|log.Lshortfile)
+}
