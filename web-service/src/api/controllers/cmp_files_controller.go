@@ -47,11 +47,7 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 		compriseMsg(w, body, http.StatusUnprocessableEntity)
 		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 
-	} else if !db.ClientExists(id) {
-		body["Error"] = fmt.Sprintf("Client with given id(%s) wasn't found", id.String())
-
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(warningLogger, body, http.StatusAccepted)
+	} else if result, err := db.GetResValue(id); reportUnreadyClient(w, id, result, err) {
 		return
 	}
 
@@ -97,10 +93,8 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 			if html == "false" {
 				compriseMsg(w, body, http.StatusOK)
 			} else {
-				w.Header().Add("Content-Type", "text/html; charset=utf-8")
-				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
 				fmt.Fprintf(w, res)
-
 			}
 			logMsg(debugLogger, body, http.StatusOK)
 		}
