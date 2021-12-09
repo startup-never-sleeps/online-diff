@@ -1,0 +1,170 @@
+{{define "view_room"}}
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <script>
+            const result = {{.}}
+            const baseUrl = "http://localhost:8080"
+            var selectedCell = null
+
+            function createComparingTable() {
+                const body = document.body
+                var header = document.createElement("h1")
+                header.innerHTML = result.Message;
+                tbl = document.createElement('table')
+                tbl.style.border = '1px solid black'
+
+                const tr = tbl.insertRow() // File names
+                insertFilenameCell(tr, 'File Name', "", false)
+                for (let i = 0; i < result.Files.length; i++) {
+                    insertFilenameCell(tr, result.Files[i], result.Id)
+                }
+                const resultMatrix = JSON.parse(result.Result)
+                for (let i = 0; i < result.Files.length; i++) {
+                    const tr = tbl.insertRow();
+                    insertFilenameCell(tr, result.Files[i], result.Id)
+                    for(let j = 0; j < resultMatrix[i].length; j++) {
+                        insertNumberCell(tr, resultMatrix[i][j], result.Id, result.Files[i], result.Files[j])
+                    }
+                }
+                body.append(header)
+                body.appendChild(tbl);
+            }
+
+            function insertFilenameCell(row, filename, id="", addHandler=true) {
+                const td = row.insertCell()
+                td.appendChild(document.createTextNode(filename))
+                td.style.border = '1px solid black'
+                if (addHandler) {
+                    td.classList.add("filenameCell");
+                    td.onclick = () => downloadFile(id, filename)
+                }
+            }
+
+            function insertNumberCell(row, text, id, filename1, filename2) {
+                var td = row.insertCell()
+                td.appendChild(document.createTextNode(text))
+                td.style.border = '1px solid black'
+                td.classList.add("percentCell");
+                td.onclick = () => {
+                    if (selectedCell) { selectedCell.classList.remove("selectedCell") }
+                    td.classList.add("selectedCell")
+                    selectedCell = td
+                    diffResponse = requestFilesDiff(id, filename1, filename2)
+                    showDiff(diffResponse)
+                }
+            }
+
+            function requestFilesDiff(id, filename1, filename2) {
+                url = baseUrl + "/api/cmp_files?id=" + id + "&f1=" + filename1 + "&f2=" + filename2
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET", url, false); // false for synchronous request
+                xmlHttp.send(null);
+                return xmlHttp.responseText;
+            }
+
+            function downloadFile(id, filename) {
+                url = baseUrl + "/api/link?id=" + id + "&name=" + filename
+                openUrl(url)
+            }
+
+            function openUrl(url) {
+                console.log(url + " will be opened")
+                window.open(url, '_blank').focus();
+            }
+
+            function showDiff(diffResponse) {
+                var diffArea = document.getElementById("diffArea")
+                if (!diffArea) {
+                    diffArea = document.createElement('div')
+                    diffArea.id = "diffArea"
+                    var diffAreaHeader = document.createElement('h1')
+                    diffAreaHeader.innerHTML = "Diff of 2 selected files"
+                    document.body.appendChild(document.createElement('hr'));
+                    document.body.appendChild(diffAreaHeader);
+                    document.body.appendChild(diffArea);
+                }
+                diffArea.innerHTML = diffResponse
+            }
+
+        </script>
+        <style>
+            html {
+                font-family: sans-serif;
+                width: 100%; height: 100%;
+                overflow-y: scroll;
+                overflow-x: scroll;
+            }
+
+            body {
+                background-image: url(https://media-exp1.licdn.com/dms/image/C4E22AQHzZXuMFTYKLw/feedshare-shrink_2048_1536/0/1638827004080?e=1642032000&v=beta&t=xKbTSm2mZkMpGoHKET3RfBx8TfFV7nP7qi_9WMQBxJ0);
+                background-size: 100%;
+            }
+
+            table {
+                margin-left:auto;
+                margin-right:auto;
+            }
+
+            h1, td, pre {
+                text-align: center;
+                color: white;
+            }
+
+            h1 {
+                color: black;
+            }
+
+            pre {
+                font-size: large;
+            }
+
+            td {
+                font-size: x-large;
+                color: white;
+                /* padding: "60px"; */
+            }
+
+            .percentCell:hover {
+                color: white;
+                background-color: rgb(202, 19, 163);
+            }
+
+            .selectedCell {
+                color: white;
+                background-color: rgb(202, 19, 163);
+            }
+
+            .filenameCell {
+                color: black;
+            }
+
+            .filenameCell:hover {
+                color: white;
+                background-color: rgb(74, 19, 202);
+            }
+
+            div {
+                width: 90%;
+                background-color: white;
+                display: table;
+                margin: 0 auto;
+                border: 1px solid black;
+            }
+            
+        </style>
+        <title>Result</title>
+    </head>
+    <body onload=createComparingTable()>
+        <h1>Result Description</h1>
+
+        <pre>Online-Diff computed the similarity of the text corpus.
+
+1. Click on the similarity-value cell to compare the content of two files.
+2. Click on the filename cell to download the respective file.
+        </pre>
+        <hr>
+    </body>
+</html>
+
+{{end}}

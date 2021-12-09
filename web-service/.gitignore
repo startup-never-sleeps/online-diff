@@ -1,8 +1,9 @@
-*~
-web-service
+*.sum
+online-diff
 tmp
 logging
 database
+
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/go

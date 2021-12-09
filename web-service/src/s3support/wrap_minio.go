@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	config "web-service/src/config"
-	utils "web-service/src/utils"
+	config "online-diff/src/config"
+	utils "online-diff/src/utils"
 
 	guuid "github.com/google/uuid"
 	"github.com/minio/minio-go/v7"

@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	utils "web-service/src/utils"
+	utils "online-diff/src/utils"
 )
 
 type PythonNLP struct {

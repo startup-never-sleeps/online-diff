@@ -1,11 +1,107 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <link href="files_upload.css" rel="stylesheet" type="text/css" />
-        <title>Upload files view</title>
+        <title>Online-Diff</title>
+        <style>
+                    html {
+                        font-family: sans-serif;
+                        width: 100%; height: 100%;
+                        overflow-y: scroll;
+                        overflow-x: scroll;
+                    }
+        
+                    body {
+                        background-image: url(https://media-exp1.licdn.com/dms/image/C4E22AQHzZXuMFTYKLw/feedshare-shrink_2048_1536/0/1638827004080?e=1642032000&v=beta&t=xKbTSm2mZkMpGoHKET3RfBx8TfFV7nP7qi_9WMQBxJ0);
+                        background-size: 100%;
+                    }
+        
+                    form {
+                        width: 40%;
+                        background: #ccc;
+                        margin: 0 auto;
+                        padding: 20px;
+                        border: 1px solid black;
+                    }
+                    form ol {
+                        padding-left: 0;
+                    }
+                    form li,
+                    div > p {
+                        background: #eee;
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 10px;
+                        list-style-type: none;
+                        border: 1px solid black;
+                    }
+        
+                    form p {
+                        line-height: 20px;
+                        padding-left: 10px;
+                    }
+                    form label,
+                    form button {
+                        background-color: #7f9ccb;
+                        padding: 5px 10px;
+                        border-radius: 5px;
+                        border: 1px ridge black;
+                        font-size: 0.8rem;
+                        height: auto;
+                    }
+                    form label:hover,
+                    form button:hover {
+                        background-color: #2d5ba3;
+                        color: white;
+                    }
+                    form label:active,
+                    form button:active {
+                        background-color: #0d3f8f;
+                        color: white;
+                    }
+        
+                    img {
+                        width:300px;
+                        height:150px;
+                        display: block;
+                        margin-left: auto;
+                        margin-right: auto;
+                    }
+        
+                    pre {
+                        color: white;
+                        font-size: large;
+                        text-align: center;
+                    }
+        
+                    h1 {
+                        color: black;
+                        text-align: center;
+                    }
+        
+                    li > img {
+                        right: 0;
+                        width: 30px;
+                        height: 30px;
+                        position: relative;
+                        margin-top: auto;
+                        margin-bottom: auto;
+                        display: inline-block;
+                    }
+        </style>
     </head>
     <body>
-        <form method="post" enctype="multipart/form-data" charset="utf-8" action="http://localhost:8080/api/upload_files">
+        <img src="https://jsoncompare.org/assets/icon/json-compare.png" alt="Diff image">
+        <hr>
+        <h1>Description</h1>
+        <pre>Online-Diff is a tool for exploring text similarities.
+No pre-installation required - magic happens on the back-end.</pre>
+        <h1>How to use</h1>
+        <pre>- Press 'Choose files to upload' button.
+- Select from 2 to 10 files in .txt format with a total size up to 10Mb.
+- Press 'Submit' button.
+- Enjoy the result.</pre>
+        <hr>
+        <form method="post" enctype="multipart/form-data" charset="utf-8" action="http://localhost:8080/api/upload_files" onsubmit="return trySubmitForm()">
             <div>
                 <label for="file_uploads">Choose files to upload (TXT)</label>
                 <input type="file" id="file_uploads" name="file_uploads" accept=".txt" multiple/>
@@ -17,6 +113,103 @@
                 <button>Submit</button>
             </div>
         </form>
-        <script src="files_upload.js"></script>
+        <script>
+            var input = document.querySelector("input");
+            var preview = document.querySelector(".files_preview");
+            const maxFilesSizeInMb = 10
+            var numOfValidFiles = 0
+
+            input.style.opacity = 0;
+            input.addEventListener("change", updateImageDisplay);
+            function updateImageDisplay() {
+                while (preview.firstChild) {
+                    preview.removeChild(preview.firstChild);
+                }
+                
+                var curFiles = input.files;
+                numOfValidFiles = 0;
+                if (curFiles.length === 0) {
+                    var para = document.createElement("p");
+                    para.textContent = "No files currently selected for upload";
+                    preview.appendChild(para);
+                } else {
+                    var list = document.createElement("ol");
+                    preview.appendChild(list);
+                    for (var i = 0; i < curFiles.length; i++) {
+                        let i_ = i
+                        var listItem = document.createElement("li");
+                        var para = document.createElement("p");
+                        if (validFileType(curFiles[i])) {
+                            para.textContent = curFiles[i].name + ", file size: " + returnFileSize(curFiles[i].size) + ".";
+                            listItem.appendChild(para);
+                            numOfValidFiles++;
+                        } else {
+                            para.textContent = curFiles[i].name + ": Not a valid file type. Update your selection.";
+                            listItem.appendChild(para);
+                        }
+
+                        var trashcan = document.createElement("img")
+                        trashcan.src = "https://img.icons8.com/external-kmg-design-outline-color-kmg-design/64/000000/external-trash-user-interface-kmg-design-outline-color-kmg-design.png"
+                        trashcan.onclick = () => removeFileFromList(i_)
+                        listItem.appendChild(trashcan)      
+                        list.appendChild(listItem);
+                    }
+                }
+            }
+
+            function trySubmitForm() {
+                if(numOfValidFiles < 2) {
+                    alert("There should be at least 2 valid files to submit them.")
+                    return false
+                } else if (getAllFilesSizeInMb() > maxFilesSizeInMb) {
+                    alert("File size exceeded. Maximum size of all files is " + maxFilesSizeInMb + "Mb.")
+                    return false
+                } else {
+                    return true
+                }
+            }
+
+            function clearAllFiles() {
+                const dt = new DataTransfer()
+                input.files = dt.files
+                updateImageDisplay()
+            }
+
+            function getAllFilesSizeInMb() {
+                var size = 0
+                for (const file in input.files) { size += (file.size / 1048576) }
+                return size
+            }
+
+            function removeFileFromList(index) {
+                const dt = new DataTransfer()
+                for (var i = 0; i < input.files.length; i++) {
+                    if (i !== index) { dt.items.add(input.files[i]) }
+                }
+                input.files = dt.files
+                updateImageDisplay()
+            }
+
+            var fileTypes = ["text/plain"];
+            function validFileType(file) {
+                console.log(file.type)
+                for (var i = 0; i < fileTypes.length; i++) {
+                    if (file.type === fileTypes[i]) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function returnFileSize(number) {
+                if (number < 1024) {
+                    return number + "bytes";
+                } else if (number > 1024 && number < 1048576) {
+                    return (number / 1024).toFixed(1) + "KB";
+                } else if (number > 1048576) {
+                    return (number / 1048576).toFixed(1) + "MB";
+                }
+            }
+        </script>
     </body>
 </html>

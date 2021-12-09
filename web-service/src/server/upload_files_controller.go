@@ -9,7 +9,7 @@ import (
 	"path"
 
 	guuid "github.com/google/uuid"
-	utils "web-service/src/utils"
+	utils "online-diff/src/utils"
 )
 
 func (s *Server) UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
@@ -77,9 +77,10 @@ func (s *Server) UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	go s.prepareViewForUUID(id)
 	// Report a link to the personal room
-	body["Message"] = fmt.Sprintf("You can view the result of the file analyses at the view %s", id)
+	/*body["Message"] = fmt.Sprintf("You can view the result of the file analyses at the view %s", id)
 	body["Result"] = id
 
 	utils.CompriseMsg(w, body, http.StatusOK)
-	utils.LogMsg(s.debugLogger, body, http.StatusOK)
+	utils.LogMsg(s.debugLogger, body, http.StatusOK)*/
+	http.Redirect(w, req, fmt.Sprintf("/api/view/%s", id.String()) , http.StatusSeeOther)
 }

@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"os"
 
-	config "web-service/src/config"
-	s3support "web-service/src/s3support"
-	containers "web-service/src/storage_container"
-	nlp "web-service/src/text_similarity"
-	utils "web-service/src/utils"
+	config "online-diff/src/config"
+	s3support "online-diff/src/s3support"
+	containers "online-diff/src/storage_container"
+	nlp "online-diff/src/text_similarity"
+	utils "online-diff/src/utils"
 )
 
 type Server struct {
@@ -31,6 +31,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/view/", s.ViewRoomHandler)
 	mux.HandleFunc("/api/link", s.GetFileLinkById)
 	mux.HandleFunc("/api/cmp_files", s.CompareFilesHandler)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "../front-end/files_upload.html")
+	})
 
 	return mux
 }

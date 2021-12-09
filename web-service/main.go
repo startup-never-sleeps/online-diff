@@ -3,13 +3,13 @@ package main
 import (
 	"log"
 
-	config "web-service/src/config"
-	s3support "web-service/src/s3support"
-	http_server "web-service/src/server"
-	stale_daemon "web-service/src/stale_daemon"
-	containers "web-service/src/storage_container"
-	nlp "web-service/src/text_similarity"
-	utils "web-service/src/utils"
+	config "online-diff/src/config"
+	s3support "online-diff/src/s3support"
+	http_server "online-diff/src/server"
+	stale_daemon "online-diff/src/stale_daemon"
+	containers "online-diff/src/storage_container"
+	nlp "online-diff/src/text_similarity"
+	utils "online-diff/src/utils"
 )
 
 const (

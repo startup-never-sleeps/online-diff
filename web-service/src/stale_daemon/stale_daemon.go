@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	s3support "web-service/src/s3support"
-	containers "web-service/src/storage_container"
-	utils "web-service/src/utils"
+	s3support "online-diff/src/s3support"
+	containers "online-diff/src/storage_container"
+	utils "online-diff/src/utils"
 )
 
 type StaleDaemon struct {

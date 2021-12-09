@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	guuid "github.com/google/uuid"
-	containers "web-service/src/storage_container"
-	utils "web-service/src/utils"
+	containers "online-diff/src/storage_container"
+	utils "online-diff/src/utils"
 )
 
 func (s *Server) reportUnreadyClient(w http.ResponseWriter, id guuid.UUID, result *utils.Pair, err error) bool {
@@ -25,7 +25,7 @@ func (s *Server) reportUnreadyClient(w http.ResponseWriter, id guuid.UUID, resul
 		utils.LogMsg(s.errorLogger, body, http.StatusAccepted)
 
 	} else if result.First == containers.Pending {
-		body["Error"] = "Analyzing the files haven't been completed yet, try again in several minutes"
+		body["Message"] = "Analyzing the files haven't been completed yet, try again in several minutes"
 
 		utils.CompriseMsg(w, body, http.StatusAccepted)
 		utils.LogMsg(s.debugLogger, body, http.StatusAccepted)

@@ -7,9 +7,10 @@ import (
 	"os"
 	"path"
 	"strings"
+	"html/template"
 
 	guuid "github.com/google/uuid"
-	utils "web-service/src/utils"
+	utils "online-diff/src/utils"
 )
 
 func (s *Server) prepareViewForUUID(id guuid.UUID) {
@@ -45,6 +46,7 @@ func (s *Server) ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		utils.LogMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
+
 	// Retrieve view id.
 	id_str := strings.TrimPrefix(req.URL.Path, "/api/view/")
 	if id_str == "" || strings.Contains(id_str, "/") {
@@ -74,8 +76,13 @@ func (s *Server) ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		body["Result"] = result.Second
 		body["Message"] = "Text similarity matrix"
 		body["Files"] = s.s3Client.ListFilesByUUID(view_id)
+		body["Id"] = view_id.String()
+		
+		// TODO: Parse once and execute on each request
+		tmpl, _ := template.ParseFiles("../front-end/view_room.html")
+		_ = tmpl.ExecuteTemplate(w, "view_room", body)
 
-		utils.CompriseMsg(w, body, http.StatusOK)
-		utils.LogMsg(s.debugLogger, body, http.StatusOK)
+		/*utils.CompriseMsg(w, body, http.StatusOK)
+		utils.LogMsg(s.debugLogger, body, http.StatusOK)*/
 	}
 }

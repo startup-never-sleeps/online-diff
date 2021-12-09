@@ -9,7 +9,7 @@ import (
 	"net/url"
 
 	guuid "github.com/google/uuid"
-	utils "web-service/src/utils"
+	utils "online-diff/src/utils"
 )
 
 func (s *Server) CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
@@ -76,6 +76,7 @@ func (s *Server) CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 
 	if okErr != nil {
 		body["Error"] = okErr.Error()
+		body["Message"] = fmt.Sprint("Unable to find given files ", fileNames)
 
 		utils.CompriseMsg(w, body, http.StatusAccepted)
 		utils.LogMsg(s.warningLogger, body, http.StatusAccepted)
@@ -85,7 +86,7 @@ func (s *Server) CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 
 		res, err := s.nlpCore.GetFilesDifference(contentBuf, fileLen, option, html, editcost, timeout)
 		if err != nil {
-			body["Message"] = fmt.Sprintf("Unable to get content difference for %s, %s", fileNames[0], fileNames[1])
+			body["Message"] = fmt.Sprint("Unable to get content difference for ", fileNames)
 			body["Error"] = err.Error()
 
 			utils.CompriseMsg(w, body, http.StatusInternalServerError)

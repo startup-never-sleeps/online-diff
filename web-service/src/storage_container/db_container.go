@@ -8,7 +8,7 @@ import (
 
 	guuid "github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
-	utils "web-service/src/utils"
+	utils "online-diff/src/utils"
 )
 
 type DbClientService struct {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	utils "web-service/src/utils"
+	utils "online-diff/src/utils"
 )
 
 type ServerConfiguration struct {

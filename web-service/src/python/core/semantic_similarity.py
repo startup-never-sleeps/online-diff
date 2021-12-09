@@ -1,6 +1,6 @@
 import gensim.downloader as api
-from gensim.models import WordEmbeddingSimilarityIndex, TfidfModel
-from gensim.similarities import SoftCosineSimilarity, SparseTermSimilarityMatrix
+from gensim.models import TfidfModel
+from gensim.similarities import SoftCosineSimilarity, SparseTermSimilarityMatrix, WordEmbeddingSimilarityIndex
 from gensim.corpora import TextDirectoryCorpus
 
 def glove_similarity(input_path):

@@ -7,9 +7,9 @@ import (
 	fuzz "github.com/google/gofuzz"
 	guuid "github.com/google/uuid"
 
-	config "web-service/src/config"
-	s3support "web-service/src/s3support"
-	utils "web-service/src/utils"
+	config "online-diff/src/config"
+	s3support "online-diff/src/s3support"
+	utils "online-diff/src/utils"
 )
 
 var minio *s3support.MinioService

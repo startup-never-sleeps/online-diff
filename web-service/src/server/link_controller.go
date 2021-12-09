@@ -1,13 +1,13 @@
 package server
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
 	guuid "github.com/google/uuid"
-	utils "web-service/src/utils"
+	utils "online-diff/src/utils"
 )
 
 func (s *Server) GetFileLinkById(w http.ResponseWriter, req *http.Request) {
@@ -56,12 +56,14 @@ func (s *Server) GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 			return
 
 		} else if presignedURL := s.s3Client.GetViewFileURL(id, fileName); presignedURL != nil {
-			body["Link"] = presignedURL.String()
+			/*body["Link"] = presignedURL.String()
 
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			enc := json.NewEncoder(w)
 			enc.SetEscapeHTML(false)
-			enc.Encode(body)
+			enc.Encode(body)*/
+
+			http.Redirect(w, req, presignedURL.String(), http.StatusSeeOther)
 
 			utils.LogMsg(s.debugLogger, body, http.StatusOK)
 
