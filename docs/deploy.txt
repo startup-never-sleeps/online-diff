@@ -1,0 +1,60 @@
+Initial setup:
+1. virtualenv /mnt/e/Programming/PetProjects/online-diff-env # Create venv
+2. source /mnt/e/Programming/PetProjects/online-diff-env/bin/activate # Activate venv
+3. pip intall -r requirements.txt # install required packages
+4. python:
+- import nltk
+- nltk.download('punkt');
+- import gensim.downloader as api
+- api.load("glove-wiki-gigaword-50")
+5. deactivate
+
+Run setup:
+1. ~/minio server ~/data
+2. source /mnt/e/Programming/PetProjects/online-diff-env/bin/activate
+3. cd /mnt/e/Programming/PetProjects/online-diff/web-service
+4. go build -o online-diff
+5. ./online-diff
+
+Test setup:
+1. http://localhost:8080/files_upload.html
+2. http://localhost:8080/api/view/02796c76-b3c4-41b5-aa36-a086ed70aad2
+3. http://localhost:8080/api/cmp_files?id=UUID4&f1=str&f2=str"
+
+AWS EC2 deploy:
+Local
+1. cp /mnt/e/Programming/Additional\ libraries/aws\ ec2/my_laptop.pem ~/.ssh
+2. chmod 400 ~/.ssh/my_laptop.pem
+Remote - (https://www.cyberciti.biz/faq/how-to-install-gol-ang-on-ubuntu-linux/)
+3. sudo snap install go --classic
+4. sudo apt install python3
+5. sudo apt install python3-virtualenv
+4. mkdir project
+5. cd project
+6. virtualenv online-diff-env
+Local
+7. cd /mnt/e/Programming/PetProjects/
+8. Remove temprorary files from online-diff/web-service - tmp, database, logging;
+9. scp -r -i "~/.ssh/my_laptop.pem" online-diff ubuntu@ec2-3-125-50-34.eu-central-1.compute.amazonaws.com:~/project/
+Remote
+10. cd ~/project/online-diff/web-service/
+11. source ~/project/online-diff-env/bin/activate
+12. pip install -r src/python/requirements.txt
+13. python
+- import nltk
+- nltk.download('punkt');
+- import gensim.downloader as api
+- api.load("glove-wiki-gigaword-50")
+14. exit
+15. cd ~/project/
+16. wget https://dl.min.io/server/minio/release/linux-amd64/minio
+17. chmod +x minio
+18. wget https://dl.min.io/client/mc/release/linux-amd64/mc
+19. sudo apt install build-essential
+
+AWS EC2 run:
+1. ssh -i "~/.ssh/my_laptop.pem" ubuntu@ec2-3-125-50-34.eu-central-1.compute.amazonaws.com
+2. cd ~/project
+3. ./minio server ~/data
+4. cd online-diff/web-service
+5. go build -o online-diff
